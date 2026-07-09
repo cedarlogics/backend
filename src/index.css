@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-white/10;
+  }
+
+  body {
+    @apply bg-[#050308] text-white antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-card {
+    @apply rounded-3xl bg-gradient-to-br from-[#151021]/80 to-[#10081d]/80 backdrop-blur-xl border border-white/10;
+  }
+
+  .neon-border {
+    @apply shadow-[0_0_20px_rgba(255,0,136,0.3)];
+  }
+
+  .neon-text {
+    text-shadow: 0 0 20px rgba(255, 0, 136,0.5);
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-[#ff0088] via-[#ff1493] to-[#ff69b4] bg-clip-text text-transparent;
+  }
+}
+
+/* React Flow Custom Styles */
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node:active {
+  cursor: grabbing;
+}
+
+.react-flow__controls {
+  @apply rounded-xl bg-[#151021]/80 backdrop-blur-sm border border-white/10;
+}
+
+.react-flow__controls-button {
+  @apply bg-white/5 border-white/10 text-white;
+}
+
+.react-flow__controls-button:hover {
+  @apply bg-white/10;
+}
+
+.react-flow__minimap {
+  @apply rounded-xl bg-[#0a0713]/80 backdrop-blur-sm border border-white/10;
+}
+
+.react-flow__attribution {
+  @apply hidden;
+}
+
+/* Animation delays */
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
