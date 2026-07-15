@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Database,
   Users,
@@ -11,7 +12,10 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { enterpriseConnections } from '@/data/mockData';
-import { cn, getStatusColor } from '@/utils/helpers';
+import { cn } from '@/utils/helpers';
+
+const HOT = '#FF2D87';
+const BRIGHT = '#FF5CA8';
 
 const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Database,
@@ -23,137 +27,139 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Server,
 };
 
-const categoryColors: Record<string, string> = {
-  ERP: 'from-blue-500/20 to-blue-600/10 border-blue-500/20',
-  CRM: 'from-purple-500/20 to-purple-600/10 border-purple-500/20',
-  HRMS: 'from-emerald-500/20 to-emerald-600/10 border-emerald-500/20',
-  Finance: 'from-amber-500/20 to-amber-600/10 border-amber-500/20',
-  Collaboration: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/20',
-  Storage: 'from-rose-500/20 to-rose-600/10 border-rose-500/20',
+// Category is a label, not a mood — one mono tag replaces six background colors.
+const categoryTag: Record<string, string> = {
+  ERP: 'ERP',
+  CRM: 'CRM',
+  HRMS: 'HR',
+  Finance: 'FIN',
+  Collaboration: 'COL',
+  Storage: 'STO',
 };
 
+function Notch({
+  children,
+  cut = 20,
+  className = '',
+}: {
+  children: React.ReactNode;
+  cut?: number;
+  className?: string;
+}) {
+  const clip = `polygon(${cut}px 0, 100% 0, 100% 100%, 0 100%, 0 ${cut}px)`;
+  return (
+    <div className={className} style={{ clipPath: clip }}>
+      {children}
+    </div>
+  );
+}
+
 export default function EnterpriseConnections() {
+  const navigate = useNavigate();
   const connectedCount = enterpriseConnections.filter((c) => c.status === 'connected').length;
   const totalCount = enterpriseConnections.length;
-
-  // Group by category
-  const categories = ['ERP', 'CRM', 'HRMS', 'Finance', 'Collaboration', 'Storage'];
+  const pct = Math.round((connectedCount / totalCount) * 100);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="rounded-3xl bg-gradient-to-br from-[#151021] to-[#10081d] border border-white/10 p-6"
+      className="relative border border-white/10 bg-[#0A0612] p-6"
+      style={{ clipPath: 'polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px)' }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">Systems</p>
           <h2 className="text-lg font-semibold text-white">Enterprise Connections</h2>
-          <p className="text-sm text-white/50">Connected Enterprise Systems</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative w-16 h-16">
-            <svg className="w-16 h-16 transform -rotate-90">
-              <circle
-                cx="32"
-                cy="32"
-                r="28"
-                stroke="rgba(255,255,255,0.1)"
-                strokeWidth="4"
-                fill="none"
-              />
-              <circle
-                cx="32"
-                cy="32"
-                r="28"
-                stroke="url(#gradient)"
-                strokeWidth="4"
-                fill="none"
-                strokeDasharray={`${(connectedCount / totalCount) * 175.93} 175.93`}
-                strokeLinecap="round"
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ff0088" />
-                  <stop offset="100%" stopColor="#ff69b4" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">
-                {Math.round((connectedCount / totalCount) * 100)}%
-              </span>
-            </div>
+
+        {/* progress as a bracketed fraction + bar instead of an SVG donut */}
+        <div className="text-right">
+          <p className="font-mono text-xl font-bold tabular-nums text-white">
+            {connectedCount}
+            <span className="text-white/30">/{totalCount}</span>
+          </p>
+          <div className="mt-1.5 h-1 w-24 bg-white/[0.08]">
+            <div
+              className="h-full"
+              style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${HOT}, ${BRIGHT})` }}
+            />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
         {enterpriseConnections.slice(0, 12).map((connection, idx) => {
           const Icon = iconMap[connection.icon] || Database;
+          const isConnected = connection.status === 'connected';
+          const isPending = connection.status === 'pending';
+
           return (
             <motion.div
               key={connection.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              className={cn(
-                'group relative p-4 rounded-2xl bg-gradient-to-br border transition-all hover:scale-105 cursor-pointer',
-                categoryColors[connection.category] || 'from-white/5 to-white/[0.02] border-white/10'
-              )}
+              transition={{ delay: idx * 0.04 }}
             >
-              <div className="flex flex-col items-center text-center">
-                <div
-                  className={cn(
-                    'w-10 h-10 rounded-xl flex items-center justify-center mb-2 transition-transform group-hover:scale-110',
-                    connection.status === 'connected'
-                      ? 'bg-white/10'
-                      : connection.status === 'pending'
-                      ? 'bg-amber-400/20'
-                      : 'bg-white/5 opacity-50'
-                  )}
+              <Notch
+                cut={12}
+                className={cn(
+                  'group relative border bg-white/[0.03] p-3 transition-colors hover:bg-white/[0.06]',
+                  isConnected ? 'border-white/10' : 'border-dashed border-white/10 opacity-70'
+                )}
+              >
+                <span
+                  className="absolute right-2 top-2 font-mono text-[9px] tracking-wide text-white/25"
                 >
-                  <Icon className="w-5 h-5 text-white" />
+                  {categoryTag[connection.category] || '—'}
+                </span>
+
+                <div className="flex flex-col items-center pt-1 text-center">
+                  <div className="mb-2 flex h-9 w-9 items-center justify-center bg-white/5">
+                    <Icon className="h-4 w-4 text-white/80" />
+                  </div>
+                  <p className="max-w-full truncate text-xs font-medium text-white">{connection.name}</p>
+
+                  {/* status as marker shape, not color */}
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span
+                      className="h-1.5 w-1.5 rotate-45"
+                      style={{
+                        background: isConnected ? HOT : 'transparent',
+                        border: `1px ${isPending ? 'dashed' : 'solid'} ${
+                          isConnected ? HOT : isPending ? BRIGHT : 'rgba(255,255,255,0.2)'
+                        }`,
+                      }}
+                    />
+                    <span
+                      className="font-mono text-[10px] uppercase"
+                      style={{
+                        color: isConnected ? BRIGHT : isPending ? BRIGHT : 'rgba(255,255,255,0.3)',
+                      }}
+                    >
+                      {connection.status}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs font-medium text-white truncate max-w-full">{connection.name}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <span
-                    className={cn(
-                      'w-1.5 h-1.5 rounded-full',
-                      connection.status === 'connected'
-                        ? 'bg-emerald-400'
-                        : connection.status === 'pending'
-                        ? 'bg-amber-400 animate-pulse'
-                        : 'bg-white/20'
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'text-[10px]',
-                      connection.status === 'connected'
-                        ? 'text-emerald-400'
-                        : connection.status === 'pending'
-                        ? 'text-amber-400'
-                        : 'text-white/30'
-                    )}
-                  >
-                    {connection.status}
-                  </span>
-                </div>
-              </div>
+              </Notch>
             </motion.div>
           );
         })}
       </div>
 
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
-        <div className="text-sm text-white/50">
-          <span className="text-white font-medium">{connectedCount}</span> of {totalCount} systems connected
-        </div>
-        <button className="flex items-center gap-2 text-sm text-[#ff0088] hover:text-[#ff1493] transition-colors">
-          <Plug className="w-4 h-4" />
-          Connect New System
-          <ArrowRight className="w-4 h-4" />
+      <div className="mt-6 flex items-center justify-between border-t border-dashed border-white/10 pt-4">
+        <p className="text-sm text-white/40">
+          <span className="font-medium text-white">{connectedCount}</span> of {totalCount} systems connected
+        </p>
+        <button
+          onClick={() => navigate('/integrations')}
+          className="flex items-center gap-2 text-sm transition-colors hover:text-white"
+          style={{ color: HOT }}
+        >
+          <Plug className="h-4 w-4" />
+          Connect new system
+          <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </motion.div>

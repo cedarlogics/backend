@@ -1,107 +1,76 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Clock, DollarSign, Users, Bot, Zap, CheckCircle } from 'lucide-react';
+import { Clock, DollarSign, Users, Bot, Zap, CheckCircle } from 'lucide-react';
 import { dashboardStats } from '@/data/mockData';
 
-const productivityCards = [
-  {
-    label: 'Tasks Automated',
-    value: 'tasksAutomated',
-    icon: CheckCircle,
-    color: 'from-[#ff0088]/20 to-[#ff1493]/10',
-    border: 'border-[#ff0088]/20',
-    valueColor: 'text-[#ff0088]',
-  },
-  {
-    label: 'Hours Saved',
-    value: 'hoursSaved',
-    icon: Clock,
-    color: 'from-emerald-500/20 to-emerald-600/10',
-    border: 'border-emerald-500/20',
-    valueColor: 'text-emerald-400',
-    suffix: 'hrs',
-  },
-  {
-    label: 'Cost Reduction',
-    value: 'costReduction',
-    icon: DollarSign,
-    color: 'from-blue-500/20 to-blue-600/10',
-    border: 'border-blue-500/20',
-    valueColor: 'text-blue-400',
-    suffix: '%',
-  },
-  {
-    label: 'Processes Running',
-    value: 'processesRunning',
-    icon: Zap,
-    color: 'from-amber-500/20 to-amber-600/10',
-    border: 'border-amber-500/20',
-    valueColor: 'text-amber-400',
-  },
-  {
-    label: 'Employees Assisted',
-    value: 'employeesAssisted',
-    icon: Users,
-    color: 'from-purple-500/20 to-purple-600/10',
-    border: 'border-purple-500/20',
-    valueColor: 'text-purple-400',
-  },
-  {
-    label: 'AI Decisions',
-    value: 'aiDecisions',
-    icon: Bot,
-    color: 'from-cyan-500/20 to-cyan-600/10',
-    border: 'border-cyan-500/20',
-    valueColor: 'text-cyan-400',
-  },
-];
+const HOT = '#FF2D87';
+const BRIGHT = '#FF5CA8';
+
+const ledgerRows = [
+  { label: 'Hours Saved', value: 'hoursSaved', icon: Clock, suffix: 'hrs', trend: '+12%' },
+  { label: 'Cost Reduction', value: 'costReduction', icon: DollarSign, suffix: '%', trend: '+4%' },
+  { label: 'Processes Running', value: 'processesRunning', icon: Zap, trend: '+8%' },
+  { label: 'Employees Assisted', value: 'employeesAssisted', icon: Users, trend: '+6%' },
+  { label: 'AI Decisions', value: 'aiDecisions', icon: Bot, trend: '+21%' },
+] as const;
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+  return num.toString();
+}
 
 export default function ProductivityOverview() {
+  const flagship = dashboardStats.tasksAutomated as number;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6 }}
-      className="rounded-3xl bg-gradient-to-br from-[#151021] to-[#10081d] border border-white/10 p-6"
+      className="relative border border-white/10 bg-[#0A0612] p-6"
+      style={{ clipPath: 'polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px)' }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30">Receipt · Auto-generated</p>
+      <h2 className="mt-0.5 text-lg font-semibold text-white">Productivity Overview</h2>
+
+      {/* flagship stat leads the receipt instead of six identical tiles */}
+      <div className="mt-5 flex items-end justify-between border-b border-dashed border-white/15 pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-white">Productivity Overview</h2>
-          <p className="text-sm text-white/50">AI-driven improvements</p>
+          <p className="text-xs uppercase tracking-wide text-white/40">Tasks Automated</p>
+          <p className="mt-1 text-4xl font-bold tabular-nums" style={{ color: HOT }}>
+            {formatNumber(flagship)}
+          </p>
         </div>
-        <TrendingUp className="w-5 h-5 text-emerald-400" />
+        <CheckCircle className="h-8 w-8" style={{ color: BRIGHT }} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {productivityCards.map((card, idx) => {
-          const Icon = card.icon;
-          const value = dashboardStats[card.value as keyof typeof dashboardStats];
+      {/* remaining stats as ledger rows with dotted leaders */}
+      <div className="mt-2">
+        {ledgerRows.map((row, idx) => {
+          const Icon = row.icon;
+          const value = dashboardStats[row.value as keyof typeof dashboardStats];
           return (
             <motion.div
-              key={card.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 * idx }}
-              className={`p-4 rounded-2xl bg-gradient-to-br ${card.color} border ${card.border}`}
+              key={row.label}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.08 * idx }}
+              className="flex items-center gap-3 border-b border-dashed border-white/10 py-2.5 last:border-b-0"
             >
-              <div className="flex items-center justify-between mb-2">
-                <Icon className={`w-5 h-5 ${card.valueColor}`} />
-                <span className="text-xs text-emerald-400">+12%</span>
-              </div>
-              <p className={`text-2xl font-bold ${card.valueColor}`}>
+              <Icon className="h-4 w-4 shrink-0 text-white/40" />
+              <span className="whitespace-nowrap text-sm text-white/60">{row.label}</span>
+              <span className="-translate-y-0.5 flex-1 border-b border-dotted border-white/15" />
+              <span className="font-mono text-sm font-semibold tabular-nums text-white">
                 {formatNumber(value as number)}
-                {card.suffix && <span className="text-sm text-white/50 ml-1">{card.suffix}</span>}
-              </p>
-              <p className="text-xs text-white/50 mt-1">{card.label}</p>
+                {row.suffix && <span className="text-white/40">{row.suffix}</span>}
+              </span>
+              <span className="font-mono text-[11px]" style={{ color: BRIGHT }}>
+                [{row.trend}]
+              </span>
             </motion.div>
           );
         })}
       </div>
     </motion.div>
   );
-}
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-  return num.toString();
 }

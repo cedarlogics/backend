@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
 import AuthLayout from '@/layouts/AuthLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
 import Dashboard from '@/pages/Dashboard';
@@ -22,31 +23,31 @@ const router = createBrowserRouter([
   },
   {
     path: '/dashboard',
-    element: <MainLayout><Dashboard /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Dashboard /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/workflows',
-    element: <MainLayout><Workflows /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Workflows /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/integrations',
-    element: <MainLayout><Integrations /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Integrations /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/ai-agents',
-    element: <MainLayout><AIAgents /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><AIAgents /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/infrastructure',
-    element: <MainLayout><Infrastructure /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Infrastructure /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/analytics',
-    element: <MainLayout><Analytics /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Analytics /></MainLayout></ProtectedRoute>,
   },
   {
     path: '/settings',
-    element: <MainLayout><Settings /></MainLayout>,
+    element: <ProtectedRoute><MainLayout><Settings /></MainLayout></ProtectedRoute>,
   },
   {
     path: '*',

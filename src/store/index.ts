@@ -1,5 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { auth } from '@/lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged,
+  type User as FirebaseUser,
+} from 'firebase/auth';
 
 // Auth Store
 interface User {
@@ -12,13 +23,30 @@ interface User {
   role: string;
 }
 
+function userFromFirebase(u: FirebaseUser): User {
+  const displayName = u.displayName || '';
+  const [firstName, ...rest] = displayName.split(' ');
+  return {
+    id: u.uid,
+    email: u.email || '',
+    firstName: firstName || '',
+    lastName: rest.join(' ') || '',
+    company: 'CedarLogics Inc.',
+    role: 'Admin',
+    avatar: u.photoURL || undefined,
+  };
+}
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authInitialized: boolean;
+  initAuth: () => () => void;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (data: Partial<User> & { password: string }) => Promise<boolean>;
-  logout: () => void;
+  googleLogin: () => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -27,35 +55,54 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
-      login: async (email: string, _password: string) => {
+      authInitialized: false,
+      initAuth: () => {
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          if (firebaseUser) {
+            const user = userFromFirebase(firebaseUser);
+            set({ user, isAuthenticated: true, isLoading: false, authInitialized: true });
+          } else {
+            set({ user: null, isAuthenticated: false, isLoading: false, authInitialized: true });
+          }
+        });
+        return unsubscribe;
+      },
+      login: async (email: string, password: string) => {
         set({ isLoading: true });
-        await new Promise((r) => setTimeout(r, 1500));
-        const user: User = {
-          id: '1',
-          email,
-          firstName: 'Alex',
-          lastName: 'Morgan',
-          company: 'CedarLogics Inc.',
-          role: 'Admin',
-        };
-        set({ user, isAuthenticated: true, isLoading: false });
-        return true;
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          return true;
+        } catch {
+          set({ isLoading: false });
+          return false;
+        }
       },
       signup: async (data) => {
         set({ isLoading: true });
-        await new Promise((r) => setTimeout(r, 1500));
-        const user: User = {
-          id: '1',
-          email: data.email || '',
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          company: data.company || '',
-          role: 'Admin',
-        };
-        set({ user, isAuthenticated: true, isLoading: false });
-        return true;
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, data.email || '', data.password);
+          const fullName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+          await updateProfile(cred.user, { displayName: fullName });
+          return true;
+        } catch {
+          set({ isLoading: false });
+          return false;
+        }
       },
-      logout: () => {
+      googleLogin: async () => {
+        set({ isLoading: true });
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithPopup(auth, provider);
+          return true;
+        } catch {
+          set({ isLoading: false });
+          return false;
+        }
+      },
+      logout: async () => {
+        set({ isLoading: false });
+        await signOut(auth);
         set({ user: null, isAuthenticated: false });
       },
     }),
